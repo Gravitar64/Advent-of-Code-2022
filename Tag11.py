@@ -4,29 +4,20 @@ import math
 
 
 class Monkey:
-  def __init__(self, items, op, amount, divisor, t, f):
+  def __init__(self, items, op, divisor, dest):
     self.items = items
     self.op = op
-    self.amount = amount
     self.divisor = divisor
-    self.t = t
-    self.f = f
+    self.dest = dest
     self.act = 0
 
-  def inspections(self, part1):
+  def inspection(self, part1):
     for item in self.items:
-      if self.amount == 'old':
-        item *= item
-      elif self.op == '*':
-        item *= int(self.amount)
-      elif self.op == '+':
-        item += int(self.amount)
-      if part1:
-        item //= 3
-      else:
-        item %= modulo_trick
-      dest = self.f if item % self.divisor else self.t
-      monkeys[dest].items.append(item)
+      op, value = self.op
+      value = item if value == 'old' else int(value)
+      item = item * value if op == '*' else item + value
+      item = item // 3 if part1 else item % magic_divisor
+      monkeys[self.dest[bool(item % self.divisor)]].items.append(item)
       self.act += 1
     self.items = []
 
@@ -39,25 +30,23 @@ def read_puzzle(file):
 def solve(puzzle, part1):
   for monkey in puzzle:
     items = list(map(int, re.findall('\d+', monkey[1])))
-    op = monkey[2][23]
-    amount = monkey[2][25:]
-    divisor = int(re.search('\d+', monkey[3]).group())
-    t = int(re.search('\d+', monkey[4]).group())
-    f = int(re.search('\d+', monkey[5]).group())
-    monkeys.append(Monkey(items, op, amount, divisor, t, f))
+    op = monkey[2][23:].split()
+    divisor = int(monkey[3][21:])
+    dest = [int(monkey[4][29]), int(monkey[5][30])]
+    monkeys.append(Monkey(items, op, divisor, dest))
 
   rounds = 20 if part1 else 10_000
   for _ in range(rounds):
     for monkey in monkeys:
-      monkey.inspections(part1)
+      monkey.inspection(part1)
 
-  return math.prod(sorted([m.act for m in monkeys], reverse=True)[:2])
+  return math.prod(sorted([m.act for m in monkeys])[-2:])
 
 
 start = pfc()
 monkeys = []
 print(solve(read_puzzle('Tag11.txt'), True))
-modulo_trick = math.prod([m.divisor for m in monkeys])
+magic_divisor = math.prod([m.divisor for m in monkeys])
 monkeys = []
 print(solve(read_puzzle('Tag11.txt'), False))
 print(pfc()-start)

@@ -1,9 +1,8 @@
-#based on the great work of Dutchcheesehead on reddit (https://www.reddit.com/user/Dutchcheesehead/)
+# based on the great work of Dutchcheesehead on reddit (https://www.reddit.com/user/Dutchcheesehead/)
 
-from time import perf_counter as pfc
+import time
 import re
 import math
-
 
 def read_puzzle(file):
   with open(file) as f:
@@ -15,14 +14,14 @@ def quality_heuristic(state):
   return 1000*mined[3] + 100*mined[2] + 10*mined[1] + mined[0]
 
 
-def bfs(bp, robots, max_minutes, max_queue=1_000):
-  _,a,b,c,d,e,f = bp
-  costs = [(a, 0, 0, 0), (b, 0, 0, 0),(c, d, 0, 0), (e, 0, f, 0)]
-  
-  # (minutes, robots, inventory, mined)
+def bfs(bp, robots, max_minutes, max_queue=500):
+  _, a, b, c, d, e, f = bp
+  costs = [(a, 0, 0, 0), (b, 0, 0, 0), (c, d, 0, 0), (e, 0, f, 0)]
+
+  # (minutes, robots, actual inventory of materials, sum of mined materials)
   queue = [(0, robots, (0, 0, 0, 0), (0, 0, 0, 0))]
   max_geodes_mined = depth = 0
-  
+
   while queue:
     minutes, robots, inventory, mined = queue.pop(0)
 
@@ -34,23 +33,25 @@ def bfs(bp, robots, max_minutes, max_queue=1_000):
       max_geodes_mined = max(max_geodes_mined, mined[3])
       continue
 
-    # Mine material with the robots (0 = ores ... 3 = geodes)
-    new_inventory = [inventory[i] + robots[i] for i in range(4)]
-    new_mined = [mined[i] + robots[i] for i in range(4)]
+    # new Values for sum of mined materials is indepent of building or not
+    new_mined = [mined[j] + robots[j] for j in range(4)]
 
-    # Case of not building a robot
-    queue.append((minutes+1, robots, new_inventory, new_mined))
-
-    # Build new robots, and try building each type of robot
+    # Try to build new robots for each type
     for i in range(4):
       cost_robot = costs[i]
 
       # Check if we have enough materials to build a robot
-      if all([inventory[j] >= cost_robot[j] for j in range(4)]):  #
+      if all([inventory[j] >= cost_robot[j] for j in range(4)]):  
         new_robots = list(robots)
         new_robots[i] += 1
-        new_inventory_state = [new_inventory[j] - cost_robot[j] for j in range(4)]
-        queue.append((minutes+1, new_robots, new_inventory_state, new_mined))
+        new_inventory = [inventory[j] - cost_robot[j] + robots[j]
+                         for j in range(4)]
+        queue.append((minutes+1, new_robots, new_inventory, new_mined))
+
+    # Do nothing, just mining
+    new_inventory = [inventory[i] + robots[i] for i in range(4)]
+    queue.append((minutes+1, robots, new_inventory, new_mined))
+
   return max_geodes_mined
 
 
@@ -61,6 +62,6 @@ def solve(puzzle):
   return part1, part2
 
 
-time_start = pfc()
+time_start = time.perf_counter()
 print(solve(read_puzzle('Tag19.txt')))
-print(pfc()-time_start)
+print(time.perf_counter()-time_start)

@@ -11,20 +11,20 @@ def read_puzzle(file):
 
 
 def quality_heuristic(state):
-  mined = state[1][2]
+  mined = state[3]
   return 1000*mined[3] + 100*mined[2] + 10*mined[1] + mined[0]
 
 
 def bfs(bp, robots, max_minutes, max_queue=1_000):
-  _, c_o, c_c, cob_o, cob_c, cge_o, cge_ob = bp
-  costs = [(c_o, 0, 0, 0), (c_c, 0, 0, 0),(cob_o, cob_c, 0, 0), (cge_o, 0, cge_ob, 0)]
+  _,a,b,c,d,e,f = bp
+  costs = [(a, 0, 0, 0), (b, 0, 0, 0),(c, d, 0, 0), (e, 0, f, 0)]
   
-  # (minutes, (robots, inventory, mined))
-  queue = [(0, (robots, (0, 0, 0, 0), (0, 0, 0, 0)))]
+  # (minutes, robots, inventory, mined)
+  queue = [(0, robots, (0, 0, 0, 0), (0, 0, 0, 0))]
   max_geodes_mined = depth = 0
   
   while queue:
-    minutes, (robots, inventory, mined) = queue.pop(0)
+    minutes, robots, inventory, mined = queue.pop(0)
 
     if minutes > depth:
       queue = sorted(queue, key=quality_heuristic, reverse=True)[:max_queue]
@@ -34,12 +34,12 @@ def bfs(bp, robots, max_minutes, max_queue=1_000):
       max_geodes_mined = max(max_geodes_mined, mined[3])
       continue
 
-    # Mine ore with the robots
+    # Mine material with the robots (0 = ores ... 3 = geodes)
     new_inventory = [inventory[i] + robots[i] for i in range(4)]
     new_mined = [mined[i] + robots[i] for i in range(4)]
 
     # Case of not building a robot
-    queue.append((minutes+1, (robots, new_inventory, new_mined)))
+    queue.append((minutes+1, robots, new_inventory, new_mined))
 
     # Build new robots, and try building each type of robot
     for i in range(4):
@@ -50,7 +50,7 @@ def bfs(bp, robots, max_minutes, max_queue=1_000):
         new_robots = list(robots)
         new_robots[i] += 1
         new_inventory_state = [new_inventory[j] - cost_robot[j] for j in range(4)]
-        queue.append((minutes+1, (new_robots, new_inventory_state, new_mined)))
+        queue.append((minutes+1, new_robots, new_inventory_state, new_mined))
   return max_geodes_mined
 
 

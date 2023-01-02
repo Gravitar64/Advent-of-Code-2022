@@ -7,7 +7,7 @@ def read_puzzle(file):
     for y, line in enumerate(f.readlines()):
       for x, char in enumerate(line.strip()):
         if char == '#':       walls.add((x-1, y-1))
-        if char in NEIGHBORS: blizzards.add((x-1, y-1, *NEIGHBORS[char]))
+        if char in DIRS:      blizzards.add((x-1, y-1, *DIRS[char]))
         if char == '.':       empties.append((x-1, y-1))
   return walls, blizzards, empties
 
@@ -34,8 +34,8 @@ def solve(walls, blizzards, empties):
   return part1
 
 
-NEIGHBORS = {'v': (0, 1), '<': (-1, 0), '>': (1, 0), '^': (0, -1)}
-MOVES = list(NEIGHBORS.values()) + [(0, 0)]
+DIRS = {'v': (0, 1), '<': (-1, 0), '>': (1, 0), '^': (0, -1)}
+MOVES = list(DIRS.values()) + [(0, 0)]
 
 time_start = time.perf_counter()
 print(solve(*read_puzzle('Tag24.txt')))

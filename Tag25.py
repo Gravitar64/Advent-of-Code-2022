@@ -14,8 +14,7 @@ def add_snafu(a,b):
     n1, n2 = s2i[char1], s2i[char2]
     e = carry + n1 + n2
     carry = -1 if e < -2 else 1 if e > 2 else 0
-    new = e - 5 if carry == 1 else 5 + e if carry == - 1 else e
-    result += i2s[new]
+    result += i2s[e - 5 * carry]
   return result[::-1]  
     
 
